@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mind Journal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav class="bg-blue-700 dark:bg-gray-900 fixed w-full z-20 top-0 start-0 border-b border-gray-200 dark:border-gray-600">
+    <div class="max-w-screen-xl mx-auto p-4 flex items-center justify-between">
+      <!-- Logo and Brand Name -->
+      <a href="/" class="flex items-center space-x-3 rtl:space-x-reverse">
+        <img src="{{ url_for('static', filename='images/Logo.png') }}" class="h-8" alt="Mind Journal Logo">
+        <span class="text-2xl font-semibold text-white">Mind Journal</span>
+      </a>
+  
+      <!-- Navigation Links -->
+      <div class="hidden md:flex items-center space-x-6">
+        <a href="/mood-trends" class="flex items-center space-x-2 rtl:space-x-reverse group">
+          <img src="{{ url_for('static', filename='images/GraphLogo.png') }}" class="h-8 w-8 transition-transform transform group-hover:scale-110">
+          <span class="text-white text-sm group-hover:underline">Mood Trends</span>
+        </a>
+        <a href="/settings" class="flex items-center space-x-2 rtl:space-x-reverse group">
+          <img src="{{ url_for('static', filename='images/SettingsLogo.png') }}" class="h-8 w-8 transition-transform transform group-hover:scale-110">
+          <span class="text-white text-sm group-hover:underline">Settings</span>
+        </a>
+        <a href="/login" class="flex items-center space-x-2 rtl:space-x-reverse group">
+          <img src="{{ url_for('static', filename='images/LoginLogo.png') }}" class="h-8 w-8 transition-transform transform group-hover:scale-110">
+          <span class="text-white text-sm group-hover:underline">Login</span>
+        </a>
+      </div>
+  
+      <!-- User Authentication and Theme Toggle -->
+      <div class="flex items-center space-x-3 rtl:space-x-reverse md:order-2">
+        {% if session.get('username') %}
+        <div class="hidden md:flex items-center">
+            <span class="text-white text-sm font-medium">Welcome, {{ session.username }}</span>
+            <a href="/logout" class="ml-4 text-white text-sm hover:underline">Logout</a>
+        </div>
+        {% else %}
+        <label class="flex items-center space-x-1 hidden md:flex">
+            <input type="checkbox" class="sr-only peer">
+            <img src="{{ url_for('static', filename='images/LightLogo.png') }}" class="h-6" alt="Light Mode">
+            <div class="relative w-11 h-6 bg-gray-200 rounded-full peer">
+                <div class="absolute top-1 left-1 w-5 h-5 bg-white rounded-full border transition-transform peer-checked:translate-x-full"></div>
+            </div>
+            <img src="{{ url_for('static', filename='images/DarkModeLogo.png') }}" class="h-6" alt="Dark Mode">
+        </label>
+        {% endif %}
+  
+        <!-- Mobile Menu Button -->
+        <button class="md:hidden text-white focus:outline-none" aria-label="Open main menu">
+          <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Section -->
+  <div class="flex justify-center items-start pt-24 px-4">
+    <div class="bg-gray-200 px-6 py-2 w-full max-w-[90%] md:max-w-[80%] rounded-[5px]">
+      <div class="grid grid-cols-3 gap-4">
+        <button onclick="showSection('journalSection')" class="w-full px-4 py-3 bg-gray-200 hover:bg-white rounded-[5px] focus:ring-2 focus:ring-blue-300 transition text-base md:text-lg lg:text-xl">
+          Journal
+        </button>
+        <button onclick="showSection('moodTrackerSection')" class="w-full px-4 py-3 bg-gray-200 hover:bg-white rounded-[5px] focus:ring-2 focus:ring-blue-300 transition text-base md:text-lg lg:text-xl">
+          Mood Tracker
+        </button>
+        <button onclick="showSection('mindfulnessSection')" class="w-full px-4 py-3 bg-gray-200 hover:bg-white rounded-[5px] focus:ring-2 focus:ring-blue-300 transition text-base md:text-lg lg:text-xl">
+          Mindfulness
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Journal Section -->
+  <div id="journalSection" class="flex justify-center items-center pt-5 px-4">
+    <div class="bg-blue-300 w-full max-w-[900px] h-auto md:h-[450px] rounded-[10px] shadow-lg">
+      <h1 class="text-blue-700 text-center pt-5 text-2xl md:text-4xl font-medium">Today's Journal Entry</h1>
+      <p class="text-center pt-3 text-black text-opacity-50 px-4">How was your day today? Write your thoughts here....</p>
+      <div class="bg-white pt-2 flex justify-center">
+        <textarea id="userInput" placeholder="Enter text" class="w-full max-w-[850px] h-[280px] px-4 py-4 text-base leading-normal resize-none rounded-[10px] placeholder-gray-400 outline outline-blue-500 focus:outline-blue-700 transition"></textarea>
+      </div>
+      <div class="flex flex-col md:flex-row justify-center items-center pt-2 space-y-4 md:space-y-0 md:space-x-4">
+        <button class="bg-blue-700 text-white rounded-[45px] w-[150px] h-[40px]" onclick="analyzeMood()">Analyze Mood</button>
+        <button id="recordButton" class="bg-green-700 text-white rounded-[45px] w-[150px] h-[40px]" onclick="toggleRecording()">Start Recording</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mood Tracker Section -->
+  <div id="moodTrackerSection" class="hidden flex justify-center items-center pt-5 px-4">
+    <div class="bg-green-300 w-full max-w-[900px] h-auto md:h-[450px] rounded-[10px] shadow-lg">
+      <h1 class="text-green-700 text-center pt-5 text-2xl md:text-4xl font-medium">Mood Tracker</h1>
+      <p class="text-center pt-3 text-black text-opacity-50 px-4">Track your mood trends here...</p>
+      <!-- Chart.js rendering code here -->
+    </div>
+  </div>
+
+  <!-- Mindfulness Section -->
+  <div id="mindfulnessSection" class="hidden flex justify-center items-center pt-5 px-4">
+    <div class="bg-yellow-300 w-full max-w-[900px] h-auto md:h-[450px] rounded-[10px] shadow-lg">
+      <h1 class="text-yellow-700 text-center pt-5 text-2xl md:text-4xl font-medium">Mindfulness</h1>
+      <p class="text-center pt-3 text-black text-opacity-50 px-4">Practice mindfulness exercises here...</p>
+    </div>
+  </div>
+
+  <!-- Bot UI -->
+  <div class="fixed bottom-5 right-5 w-80 bg-white border border-gray-300 rounded-lg shadow-lg">
+    <!-- Header -->
+    <div class="bg-blue-600 text-white px-4 py-3 rounded-t-lg flex items-center space-x-3">
+      <img src="your-bot-profile-picture.jpg" alt="AI Bot" class="w-10 h-10 rounded-full border-2 border-white">
+      <h3 class="text-lg font-semibold">AI Bot</h3>
+      <button class="ml-auto text-white hover:text-gray-300" id="closeBot">✕</button>
+    </div>
+
+    <!-- Bot UI -->
+<div class="fixed bottom-5 right-5 w-80 bg-white border border-gray-300 rounded-lg shadow-lg">
+  <!-- Header -->
+  <div class="bg-blue-600 text-white px-4 py-3 rounded-t-lg flex items-center space-x-3">
+      <img id="botProfilePic" src="{{ url_for('static', filename='images/Saffir.jpg') }}" alt="AI Bot" class="w-10 h-10 rounded-full border-2 border-white">
+      <h3 id="botName" class="text-lg font-semibold">AI Bot</h3>
+      <button class="ml-auto text-white hover:text-gray-300" id="closeBot">✕</button>
+  </div>
+
+  <!-- Bot Log -->
+  <div id="botLog" class="p-4 h-64 overflow-y-auto space-y-3">
+      <!-- Example Bot Message -->
+      <div class="bg-gray-100 p-3 rounded-lg text-sm text-gray-800">
+          <strong>Bot:</strong> Hello! I'm here to help you process your thoughts and feelings.
+          <span class="block text-gray-500 text-xs mt-1 text-right">Now</span>
+          <button class="mt-2 bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700" onclick="playBotResponse('Hello! I\'m here to help you process your thoughts and feelings.', 'unisex')">
+              Listen
+          </button>
+      </div>
+  </div>
+
+  <!-- Loading Animation -->
+  <div id="loadingSpinner" class="hidden flex justify-center items-center p-2">
+      <div class="w-6 h-6 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+  </div>
+</div>
+
+  <!-- Audio Player -->
+  <audio id="audioPlayer" controls class="hidden">
+    <source id="audioSource" src="" type="audio/mpeg">
+    Your browser does not support the audio element.
+  </audio>
+
+  <!-- Scripts -->
+  <script>
+    // Section Display Functions
+    function showSection(sectionId) {
+        document.getElementById('journalSection').classList.add('hidden');
+        document.getElementById('moodTrackerSection').classList.add('hidden');
+        document.getElementById('mindfulnessSection').classList.add('hidden');
+        document.getElementById(sectionId).classList.remove('hidden');
+    }
+
+    // Voice Recording Functions
+    let recognition;
+    let isRecording = false;
+
+    function toggleRecording() {
+        const recordButton = document.getElementById('recordButton');
+        if (!isRecording) {
+            startVoiceToText();
+            recordButton.textContent = 'Stop Recording';
+            isRecording = true;
+        } else {
+            stopVoiceToText();
+            recordButton.textContent = 'Start Recording';
+            isRecording = false;
+        }
+    }
+
+    function startVoiceToText() {
+        if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+            alert('Your browser does not support speech recognition. Please use Google Chrome or another supported browser.');
+            return;
+        }
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
+
+        recognition.onresult = (event) => {
+            const textarea = document.getElementById('userInput');
+            textarea.value = '';
+            for (let i = 0; i < event.results.length; i++) {
+                const transcript = event.results[i][0].transcript;
+                textarea.value += transcript;
+            }
+        };
+
+        recognition.onerror = (event) => {
+            console.error('Speech recognition error:', event.error);
+            alert('An error occurred during speech recognition.');
+        };
+
+        recognition.onend = () => {
+            console.log('Speech recognition ended.');
+        };
+
+        recognition.start();
+        console.log('Speech recognition started.');
+    }
+
+    function stopVoiceToText() {
+        if (recognition) {
+            recognition.stop();
+            console.log('Speech recognition stopped.');
+        }
+    }
+
+    // Function to handle character selection
+    function selectCharacter(name, profilePic, voiceType) {
+        // Update the bot's profile picture
+        document.getElementById('botProfilePic').src = profilePic;
+
+        // Update the bot's name
+        document.getElementById('botName').textContent = name;
+
+        // Update the voice type (store it in a global variable)
+        window.currentVoiceType = voiceType;
+
+        // Optional: Show a confirmation message
+        const botLog = document.getElementById('botLog');
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'bg-gray-100 p-3 rounded-lg text-sm text-gray-800';
+        msgDiv.innerHTML = `
+            <strong>System:</strong> You selected ${name}.
+            <span class="block text-gray-500 text-xs mt-1 text-right">Now</span>
+        `;
+        botLog.appendChild(msgDiv);
+        botLog.scrollTop = botLog.scrollHeight;
+    }
+
+    // Function to play bot response with the selected voice
+    async function playBotResponse(text) {
+        const voiceType = window.currentVoiceType || 'unisex'; // Default to unisex if not set
+        console.log("Calling playBotResponse with text:", text, "and voice:", voiceType);
+        try {
+            const response = await fetch('/generate_speech', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    text: text,
+                    voice_type: voiceType,
+                }),
+            });
+            const data = await response.json();
+            console.log("Response from /generate_speech:", data);
+            if (data.file) {
+                const audioPlayer = document.getElementById('audioPlayer');
+                const audioSource = document.getElementById('audioSource');
+                audioSource.src = data.file;
+                audioPlayer.load();
+                audioPlayer.play();
+                console.log("Playing audio file:", data.file);
+            } else {
+                console.error('Error generating speech:', data.error);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    // Initialize Bot UI
+    document.addEventListener("DOMContentLoaded", () => {
+        const botLog = document.getElementById('botLog');
+        const closeBot = document.getElementById('closeBot');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const userInput = document.getElementById('userInput');
+
+        const getBotResponse = async (message) => {
+            try {
+                const response = await fetch("/analyze", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ text: message }),
+                });
+                return await response.json();
+            } catch (error) {
+                throw new Error("Failed to connect to the server.");
+            }
+        };
+
+        async function handleAnalysis(text) {
+            addMessage(text, false);
+            loadingSpinner.classList.remove('hidden');
+
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ text: text })
+                });
+
+                const data = await response.json();
+                loadingSpinner.classList.add('hidden');
+
+                if (data.error) {
+                    addMessage(data.error);
+                } else {
+                    addMessage(data.therapy_response);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                loadingSpinner.classList.add('hidden');
+                addMessage('Sorry, there was an error processing your request.');
+            }
+        }
+
+        const addMessage = (message, isBot = true) => {
+            const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `${isBot ? 'bg-gray-100' : 'bg-blue-100'} p-3 rounded-lg text-sm text-gray-800`;
+            msgDiv.innerHTML = `
+                <strong>${isBot ? 'Bot' : 'You'}:</strong> ${message}
+                <span class="block text-gray-500 text-xs mt-1 text-right">${timestamp}</span>
+                ${isBot ? `
+                    <button class="mt-2 bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700" onclick="playBotResponse('${message}')">
+                        Listen
+                    </button>
+                ` : ''}
+            `;
+            botLog.appendChild(msgDiv);
+            botLog.scrollTop = botLog.scrollHeight;
+        };
+
+        window.analyzeMood = function () {
+            const text = userInput.value.trim();
+            if (text) {
+                handleAnalysis(text);
+                userInput.value = '';
+            }
+        };
+
+        userInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                analyzeMood();
+            }
+        });
+
+        closeBot.addEventListener('click', () => {
+            closeBot.closest('.fixed').style.display = 'none';
+        });
+    });
+
+    // Mood Analysis Function
+    async function analyzeMood() {
+        const userInput = document.getElementById('userInput').value.trim();
+        const resultElement = document.getElementById('analysisResult');
+
+        if (!userInput) {
+            resultElement.innerText = "Please enter some text for analysis.";
+            return;
+        }
+
+        try {
+            const response = await fetch('/analyze', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ text: userInput })
+            });
+
+            const data = await response.json();
+
+            if (data.error) {
+                resultElement.innerText = data.error;
+            } else {
+                resultElement.innerText = data.therapy_response;
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            resultElement.innerText = "An error occurred while processing your request.";
+        }
+    }
+
+    // Theme Toggle
+    document.getElementById('themeToggle')?.addEventListener('click', () => {
+        document.documentElement.classList.toggle('dark');
+    });
+</script>
+</body>
+</html>

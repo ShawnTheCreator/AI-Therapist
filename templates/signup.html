@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mind Journal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav class="bg-blue-700 dark:bg-gray-900 fixed w-full z-20 top-0 start-0 border-b border-gray-200 dark:border-gray-600">
+    <div class="max-w-screen-xl mx-auto p-4 flex items-center justify-between">
+      <!-- Logo and Brand Name -->
+      <a href="/" class="flex items-center space-x-3 rtl:space-x-reverse">
+        <img src="{{ url_for('static', filename='images/Logo.png') }}" class="h-8" alt="Mind Journal Logo">
+        <span class="text-2xl font-semibold text-white">Mind Journal</span>
+      </a>
+
+      <!-- Navigation Links -->
+      <div class="hidden md:flex items-center space-x-6">
+        <!-- Home Section -->
+        <a href="/" class="flex items-center space-x-2 rtl:space-x-reverse group">
+          <img src="{{ url_for('static', filename='images/HouseLogo.png') }}" class="h-8 w-8 transition-transform transform group-hover:scale-110">
+          <span class="text-white text-sm group-hover:underline">Home</span>
+        </a>
+        <!-- Mood Trends Section -->
+        <a href="/mood-trends" class="flex items-center space-x-2 rtl:space-x-reverse group">
+          <img src="{{ url_for('static', filename='images/GraphLogo.png') }}" class="h-8 w-8 transition-transform transform group-hover:scale-110">
+          <span class="text-white text-sm group-hover:underline">Mood Trends</span>
+        </a>
+        <!-- Settings Section -->
+        <a href="/settings" class="flex items-center space-x-2 rtl:space-x-reverse group">
+          <img src="{{ url_for('static', filename='images/SettingsLogo.png') }}" class="h-8 w-8 transition-transform transform group-hover:scale-110">
+          <span class="text-white text-sm group-hover:underline">Settings</span>
+        </a>
+      </div>
+
+      <!-- Theme Toggle and Mobile Menu -->
+      <div class="flex items-center space-x-3 rtl:space-x-reverse md:order-2">
+        <!-- Theme Toggle -->
+        <label class="flex items-center space-x-1 hidden md:flex">
+          <input type="checkbox" class="sr-only peer">
+          <img src="{{ url_for('static', filename='images/LightLogo.png') }}" class="h-6" alt="Light Mode">
+          <div class="relative w-11 h-6 bg-gray-200 rounded-full peer">
+            <div class="absolute top-1 left-1 w-5 h-5 bg-white rounded-full border transition-transform peer-checked:translate-x-full"></div>
+          </div>
+          <img src="{{ url_for('static', filename='images/DarkModeLogo.png') }}" class="h-6" alt="Dark Mode">
+        </label>
+
+        <!-- Mobile Menu Button -->
+        <button class="md:hidden text-white focus:outline-none" aria-label="Open main menu">
+          <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+<!--Sign Up-->
+<div class="bg-gray-100 flex justify-center items-center h-screen pt-24">
+    <div class="bg-white p-8 rounded-lg shadow-lg w-96">
+        <!-- Profile Image Circle -->
+        <div class="flex justify-center mb-6">
+            <label for="profilePicInput" class="w-24 h-24 rounded-full bg-gray-300 bg-cover bg-center cursor-pointer" id="profilePic" style="background-image: url('../static/images/AccountLogo.png');"></label>
+            <input type="file" id="profilePicInput" class="hidden" accept="image/*">
+        </div>
+        <form action="#" method="POST">
+            <!-- Username -->
+            <input type="text" class="w-full p-3 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Username" name="username" required>
+            
+            <!-- Email -->
+            <input type="email" class="w-full p-3 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Email" name="email" required>
+            
+            <!-- Create Password -->
+            <input type="password" class="w-full p-3 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Create Password" name="password" required>
+            
+            <!-- Repeat Password -->
+            <input type="password" class="w-full p-3 mb-6 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Repeat Password" name="confirm-password" required>
+            
+            <!-- Submit Button -->
+            <button type="submit" class="w-full p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none">Sign Up</button>
+        </form>
+        
+        <!-- Link to Login Page -->
+        <p class="mt-4 text-center text-sm">
+            Already have an account? <a href="/login" class="text-blue-500 hover:underline">Log In</a>
+        </p>
+    </div>
+</div>
+
+<script>
+profilePicInput.addEventListener('change', (event) => {
+  const file = event.target.files[0];
+  if (file) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+          const modal = document.createElement('div');
+          modal.style.position = 'fixed';
+          modal.style.top = '0';
+          modal.style.left = '0';
+          modal.style.width = '100%';
+          modal.style.height = '100%';
+          modal.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+          modal.style.display = 'flex';
+          modal.style.justifyContent = 'center';
+          modal.style.alignItems = 'center';
+
+          const img = document.createElement('img');
+          img.src = e.target.result;
+          img.style.maxWidth = '80%';
+          img.style.maxHeight = '80%';
+          img.style.borderRadius = '50%'; // Circular preview
+
+          const confirmButton = document.createElement('button');
+          confirmButton.textContent = 'OK';
+          confirmButton.style.position = 'absolute';
+          confirmButton.style.bottom = '20px';
+          confirmButton.style.background = '#00f';
+          confirmButton.style.color = '#fff';
+          confirmButton.style.padding = '10px 20px';
+          confirmButton.style.border = 'none';
+          confirmButton.style.cursor = 'pointer';
+
+          modal.appendChild(img);
+          modal.appendChild(confirmButton);
+          document.body.appendChild(modal);
+
+          cropper = new Cropper(img, {
+              aspectRatio: 1, // Maintains a square (circular) ratio
+              viewMode: 1,
+              background: false,
+              cropBoxMovable: false, // Locks the crop box in place
+              cropBoxResizable: false, // Prevents resizing
+          });
+
+          confirmButton.addEventListener('click', () => {
+              const canvas = cropper.getCroppedCanvas({
+                  width: 128,
+                  height: 128,
+              });
+
+              profilePic.style.backgroundImage = `url(${canvas.toDataURL()})`;
+              profilePic.style.borderRadius = '50%'; // Ensure the profile image is circular
+              document.body.removeChild(modal);
+              cropper.destroy();
+          });
+      };
+      reader.readAsDataURL(file);
+  }
+});
+</script>
+
+</body>
+</html>

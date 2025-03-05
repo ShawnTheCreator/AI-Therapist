@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mind Journal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../static/css/style.css" />
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const languageSelector = document.getElementById('language-selector');
+
+            languageSelector.addEventListener('change', (event) => {
+                const selectedLanguage = event.target.value;
+
+                // Fetch the updated language setting from the server
+                fetch(`/set-language`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ language: selectedLanguage })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(`Language changed to ${data.language}`);
+                })
+                .catch(error => {
+                    console.error('Error changing language:', error);
+                });
+            });
+
+            const logoutBtn = document.getElementById('logout-btn');
+            logoutBtn.addEventListener('click', () => {
+                // Redirect to the logout endpoint directly using GET request
+                window.location.href = '/logout';
+            });
+
+            // Retrieve the selected character on page load
+            const selectedCharacter = JSON.parse(localStorage.getItem('selectedCharacter'));
+            if (selectedCharacter) {
+                console.log('Selected Character:', selectedCharacter.name);
+                console.log('Profile Picture:', selectedCharacter.profilePic);
+                console.log('Voice Type:', selectedCharacter.voiceType);
+
+                // Update the bot's profile picture and name
+                const botProfilePic = document.getElementById('botProfilePic');
+                const botName = document.getElementById('botName');
+                if (botProfilePic && botName) {
+                    botProfilePic.src = selectedCharacter.profilePic;
+                    botName.textContent = selectedCharacter.name;
+                }
+            }
+        });
+
+        // Function to handle AI character selection
+        function selectCharacter(name, profilePic, voiceType) {
+            // Save the selected character's details in localStorage
+            localStorage.setItem('selectedCharacter', JSON.stringify({ name, profilePic, voiceType }));
+
+            // Optional: Show a confirmation message
+            alert(`You selected ${name}. The bot will now use the ${voiceType} voice.`);
+
+            // Redirect to the home page (or any other page)
+            window.location.href = '/';
+        }
+    </script>
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav class="bg-blue-700 dark:bg-gray-900 fixed w-full z-20 top-0 start-0 border-b border-gray-200 dark:border-gray-600">
+    <div class="max-w-screen-xl mx-auto p-4 flex items-center justify-between">
+      <!-- Logo and Brand Name -->
+      <a href="/" class="flex items-center space-x-3 rtl:space-x-reverse">
+        <img src="{{ url_for('static', filename='images/Logo.png') }}" class="h-8" alt="Mind Journal Logo">
+        <span class="text-2xl font-semibold text-white">Mind Journal</span>
+      </a>
+
+      <!-- Navigation Links -->
+      <div class="hidden md:flex items-center space-x-6">
+        <!-- Home Section -->
+        <a href="/" class="flex items-center space-x-2 rtl:space-x-reverse group">
+          <img src="{{ url_for('static', filename='images/HouseLogo.png') }}" class="h-8 w-8 transition-transform transform group-hover:scale-110">
+          <span class="text-white text-sm group-hover:underline">Home</span>
+        </a>
+        <!-- Mood Trends Section -->
+        <a href="/mood-trends" class="flex items-center space-x-2 rtl:space-x-reverse group">
+          <img src="{{ url_for('static', filename='images/GraphLogo.png') }}" class="h-8 w-8 transition-transform transform group-hover:scale-110">
+          <span class="text-white text-sm group-hover:underline">Mood Trends</span>
+        </a>
+        <!-- Login Section -->
+        <div class="flex flex-col items-center flex items-center space-x-2 rtl:space-x-reverse group">
+            <a href="/login" class="flex items-center space-x-2 rtl:space-x-reverse group">
+              <img src="{{ url_for('static', filename='images/LoginLogo.png') }}" class="h-8 w-8 transition-transform transform group-hover:scale-110">
+              <span class="text-white text-sm group-hover:underline">Login</span>
+            </a>
+        </div>
+      </div>
+
+      <!-- Theme Toggle and Mobile Menu -->
+      <div class="flex items-center space-x-3 rtl:space-x-reverse md:order-2">
+        <!-- Theme Toggle -->
+        <label class="flex items-center space-x-1 hidden md:flex">
+          <input type="checkbox" class="sr-only peer">
+          <img src="{{ url_for('static', filename='images/LightLogo.png') }}" class="h-6" alt="Light Mode">
+          <div class="relative w-11 h-6 bg-gray-200 rounded-full peer">
+            <div class="absolute top-1 left-1 w-5 h-5 bg-white rounded-full border transition-transform peer-checked:translate-x-full"></div>
+          </div>
+          <img src="{{ url_for('static', filename='images/DarkModeLogo.png') }}" class="h-6" alt="Dark Mode">
+        </label>
+
+        <!-- Mobile Menu Button -->
+        <button class="md:hidden text-white focus:outline-none" aria-label="Open main menu">
+          <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+<!--Main-->
+<div class="bg-gray-100 text-gray-800 font-sans">
+    <div class="max-w-4xl mx-auto p-6 space-y-6">
+        <!-- Header -->
+        <header class="text-center">
+            <h1 class="text-3xl font-bold text-gray-800">Settings</h1>
+            <p class="text-gray-600">Customize your AI therapy experience</p>
+        </header>
+
+        <!-- Appearance Settings -->
+        <section class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-2xl font-semibold mb-4">Appearance</h2>
+            <div class="space-y-4">
+                <label class="block">
+                    <span class="text-gray-700">Choose Theme</span>
+                    <select class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        <option>Light</option>
+                        <option>Dark</option>
+                        <option>System Default</option>
+                    </select>
+                </label>
+                <label class="block">
+                    <span class="text-gray-700">Font Size</span>
+                    <select class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        <option>Small</option>
+                        <option>Medium</option>
+                        <option>Large</option>
+                    </select>
+                </label>
+            </div>
+        </section>
+
+        <!-- AI Character Selection -->
+        <section class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-2xl font-semibold mb-4">Select Your AI Character</h2>
+            <div class="flex overflow-x-auto space-x-4">
+                <!-- AI Character: Saffire -->
+                <div class="flex-none w-24 cursor-pointer" onclick="selectCharacter('Saffire', '{{ url_for("static", filename="images/Saffir.jpg") }}', 'Joanna')">
+                    <img src="{{ url_for('static', filename='images/Saffir.jpg') }}" alt="Saffire" class="rounded-full w-24 h-24 mx-auto">
+                    <p class="text-center mt-2">Saffire</p>
+                </div>
+                <!-- AI Character: Faith -->
+                <div class="flex-none w-24 cursor-pointer" onclick="selectCharacter('Faith', '{{ url_for("static", filename="images/Faith.jpg") }}', 'Salli')">
+                    <img src="{{ url_for('static', filename='images/Faith.jpg') }}" alt="Faith" class="rounded-full w-24 h-24 mx-auto">
+                    <p class="text-center mt-2">Faith</p>
+                </div>
+                <!-- AI Character: Henry -->
+                <div class="flex-none w-24 cursor-pointer" onclick="selectCharacter('Henry', '{{ url_for("static", filename="images/Henry.jpg") }}', 'Matthew')">
+                    <img src="{{ url_for('static', filename='images/Henry.jpg') }}" alt="Henry" class="rounded-full w-24 h-24 mx-auto">
+                    <p class="text-center mt-2">Henry</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Account Settings -->
+        <section class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-2xl font-semibold mb-4">Account Management</h2>
+            <div class="space-y-4">
+                <button id="logout-btn" class="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600">Logout</button>
+                <button class="w-full bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600">Delete Account</button>
+            </div>
+        </section>
+
+        <!-- Other Settings -->
+        <section class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-2xl font-semibold mb-4">Other Settings</h2>
+            <label class="block">
+                <span class="text-gray-700">Language</span>
+                <select id="language-selector" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="en">English</option>
+                    <option value="es">Spanish</option>
+                    <option value="fr">French</option>
+                </select>
+            </label>
+            <label class="block mt-4">
+                <span class="text-gray-700">Notifications</span>
+                <div class="mt-1">
+                    <label class="flex items-center">
+                        <input type="checkbox" class="form-checkbox">
+                        <span class="ml-2">Enable Notifications</span>
+                    </label>
+                </div>
+            </label>
+        </section>
+    </div>
+</div>
+</body>
+</html>
