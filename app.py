@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, render_template, request, jsonify
 from pathlib import Path
 from bot import TherapistBot
 import boto3
@@ -6,9 +6,10 @@ import os
 from dotenv import load_dotenv
 import logging
 
-# Load environment variables
+# Load environment variables from .env file
 load_dotenv()
 
+# Initialize Flask app
 app = Flask(__name__)
 
 # Use environment variable for the secret key (ensure it's set in your .env file)
@@ -16,7 +17,7 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY")
 if not app.secret_key:
     raise ValueError("FLASK_SECRET_KEY is not set in the .env file")
 
-# Create directories for static files
+# Create directories for static files if they don't exist
 Path("static/css").mkdir(parents=True, exist_ok=True)
 Path("static/images").mkdir(parents=True, exist_ok=True)
 
@@ -30,14 +31,14 @@ polly_client = boto3.Session(
     region_name='us-west-2'
 ).client('polly')
 
-# Voice options
+# Define available voice options for Polly
 VOICES = {
     'unisex': 'Joanna',
     'female': 'Salli',
     'male': 'Matthew'
 }
 
-# Set up logging
+# Set up logging configuration for better error tracking and debugging
 logging.basicConfig(level=logging.DEBUG)
 
 @app.route('/')
@@ -101,4 +102,5 @@ def login():
     return render_template('login.html')
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    # Run the app with debug mode for development, use host='0.0.0.0' for production environment
+    app.run(host='0.0.0.0', port=5000, debug=True)
