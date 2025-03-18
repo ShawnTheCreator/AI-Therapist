@@ -6,39 +6,33 @@ import os
 from dotenv import load_dotenv
 import logging
 
-# Load environment variables from .env file
+# Load environment variables from Render environment settings
 load_dotenv()
 
-# Initialize Flask app
 app = Flask(__name__)
 
-# Use environment variable for the secret key (ensure it's set in your .env file)
+# Ensure FLASK_SECRET_KEY is set
 app.secret_key = os.getenv("FLASK_SECRET_KEY")
 if not app.secret_key:
-    raise ValueError("FLASK_SECRET_KEY is not set in the .env file")
+    raise ValueError("FLASK_SECRET_KEY is not set")
 
-# Create directories for static files if they don't exist
+# Create static directories (Render has an ephemeral file system)
 Path("static/css").mkdir(parents=True, exist_ok=True)
 Path("static/images").mkdir(parents=True, exist_ok=True)
 
-# Initialize the AI bot
+# Initialize AI bot
 bot = TherapistBot()
 
-# Initialize Polly client using environment variables
+# AWS Polly Client
 polly_client = boto3.Session(
     aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
     aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
     region_name='us-west-2'
 ).client('polly')
 
-# Define available voice options for Polly
-VOICES = {
-    'unisex': 'Joanna',
-    'female': 'Salli',
-    'male': 'Matthew'
-}
+VOICES = {'unisex': 'Joanna', 'female': 'Salli', 'male': 'Matthew'}
 
-# Set up logging configuration for better error tracking and debugging
+# Logging Configuration
 logging.basicConfig(level=logging.DEBUG)
 
 @app.route('/')
@@ -50,7 +44,7 @@ def analyze():
     try:
         data = request.get_json()
         logging.debug("Received data: %s", data)
-        
+
         if not data or 'text' not in data:
             return jsonify({'error': 'No text provided', 'therapy_response': None}), 400
 
@@ -101,6 +95,11 @@ def settings():
 def login():
     return render_template('login.html')
 
+@app.route("/health")
+def health():
+    return "OK", 200
+
+
 if __name__ == '__main__':
-    # Run the app with debug mode for development, use host='0.0.0.0' for production environment
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    port = int(os.environ.get("PORT", 5000))  # Get assigned port
+    app.run(host='0.0.0.0', port=port, debug=False)  # Disable debug in production
